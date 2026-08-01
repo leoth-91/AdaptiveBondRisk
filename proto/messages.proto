@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package adaptive_bond_risk.protocol;
+
+message PingRequest {
+  string message = 1;
+}
+
+message PingResponse {
+  string message = 1;
+  string server_version = 2;
+}
+
+message Request {
+  uint64 request_id = 1;
+
+  oneof payload {
+    PingRequest ping = 2;
+  }
+}
+
+message Response {
+  uint64 request_id = 1;
+  bool success = 2;
+  string error = 3;
+
+  oneof payload {
+    PingResponse ping = 4;
+  }
+}

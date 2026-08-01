@@ -1,0 +1,19 @@
+name: abr
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.11
+  - cmake>=3.28,<4
+  - make
+  - cxx-compiler
+  - pkg-config
+  - zeromq>=4.3.5,<5
+  - cppzmq>=4.10,<5
+  - libprotobuf>=5.29,<6
+  - protobuf>=5.29,<6
+  - pyzmq>=26,<28
+  - catch2>=3.7,<4
+  - pytest>=8,<10
+  - cli11>=2.4,<3

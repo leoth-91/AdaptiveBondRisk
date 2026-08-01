@@ -1,0 +1,27 @@
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+Language: Cpp
+IndentWidth: 4
+MaxEmptyLinesToKeep: 5
+ColumnLimit: 85
+PointerAlignment: Left
+BreakBeforeBraces: Linux
+SpaceInEmptyBlock: true
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 4
+SpacesInAngles: false           # as in std::vector< T >
+SpacesInConditionalStatement: true
+SpacesInParentheses: false
+SpaceAfterCStyleCast: true
+# SplitEmptyFunction: true
+# SplitEmptyRecord: true
+AlignAfterOpenBracket: Align
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: InlineOnly    # do not write a function in a single line
+AlignConsecutiveAssignments:
+  Enabled: true
+  AlignCompound: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+  PadOperators: true
+InsertBraces: false
+
