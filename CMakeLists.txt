@@ -88,13 +88,19 @@ configure_file(
 set(SERVER_MAIN "${CMAKE_CURRENT_SOURCE_DIR}/server/main.cc")
 set(
     SERVER_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/server/src/fixed_rate_bond.cc"
     "${CMAKE_CURRENT_SOURCE_DIR}/server/src/messenger.cc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/server/src/portfolio.cc"
     "${CMAKE_CURRENT_SOURCE_DIR}/server/src/request_handler.cc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/server/src/yield_curve.cc"
 )
 set(
     SERVER_HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/server/include/fixed_rate_bond.hh"
     "${CMAKE_CURRENT_SOURCE_DIR}/server/include/messenger.hh"
+    "${CMAKE_CURRENT_SOURCE_DIR}/server/include/portfolio.hh"
     "${CMAKE_CURRENT_SOURCE_DIR}/server/include/request_handler.hh"
+    "${CMAKE_CURRENT_SOURCE_DIR}/server/include/yield_curve.hh"
 )
 
 add_custom_command(
@@ -245,6 +251,7 @@ if(BUILD_TESTING)
 
     add_executable(
         adaptive_bond_risk_cpp_tests
+        tests/cpp/test_finance.cc
         tests/cpp/test_request_handler.cc
     )
     target_link_libraries(
@@ -298,7 +305,7 @@ if(BUILD_TESTING)
         PROPERTIES
             LABELS "unit;python"
             ENVIRONMENT
-                "ADAPTIVE_BOND_RISK_CLIENT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/client;ADAPTIVE_BOND_RISK_GENERATED_PYTHON_DIR=${GENERATED_PYTHON_DIR}"
+                "ADAPTIVE_BOND_RISK_CLIENT_MODULE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/client/module;ADAPTIVE_BOND_RISK_GENERATED_PYTHON_DIR=${GENERATED_PYTHON_DIR}"
     )
 
     add_test(
@@ -313,7 +320,7 @@ if(BUILD_TESTING)
             LABELS "integration;python"
             TIMEOUT 15
             ENVIRONMENT
-                "ADAPTIVE_BOND_RISK_CLIENT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/client;ADAPTIVE_BOND_RISK_GENERATED_PYTHON_DIR=${GENERATED_PYTHON_DIR};ADAPTIVE_BOND_RISK_SERVER=$<TARGET_FILE:adaptive_bond_risk_server>"
+                "ADAPTIVE_BOND_RISK_CLIENT_MODULE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/client/module;ADAPTIVE_BOND_RISK_GENERATED_PYTHON_DIR=${GENERATED_PYTHON_DIR};ADAPTIVE_BOND_RISK_SERVER=$<TARGET_FILE:adaptive_bond_risk_server>;ADAPTIVE_BOND_RISK_DATA_DIR=${CMAKE_CURRENT_SOURCE_DIR}/data"
     )
 endif()
 

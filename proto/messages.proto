@@ -11,11 +11,52 @@ message PingResponse {
   string server_version = 2;
 }
 
+message YieldCurvePoint {
+  double maturity = 1;
+  double zero_rate = 2;
+}
+
+message BondPosition {
+  string id = 1;
+  double face_value = 2;
+  double coupon_rate = 3;
+  double time_to_maturity = 4;
+  uint32 coupon_frequency = 5;
+  double time_to_next_coupon = 6;
+  double quantity = 7;
+}
+
+message PortfolioValueRequest {
+  repeated YieldCurvePoint yield_curve = 1;
+  repeated BondPosition positions = 2;
+}
+
+message DiscountedCashFlow {
+  double payment_time = 1;
+  double amount = 2;
+  double discount_factor = 3;
+  double present_value = 4;
+}
+
+message BondValuation {
+  string id = 1;
+  double quantity = 2;
+  double unit_value = 3;
+  double position_value = 4;
+  repeated DiscountedCashFlow cash_flows = 5;
+}
+
+message PortfolioValueResponse {
+  double total_value = 1;
+  repeated BondValuation positions = 2;
+}
+
 message Request {
   uint64 request_id = 1;
 
   oneof payload {
     PingRequest ping = 2;
+    PortfolioValueRequest portfolio_value = 3;
   }
 }
 
@@ -26,5 +67,6 @@ message Response {
 
   oneof payload {
     PingResponse ping = 4;
+    PortfolioValueResponse portfolio_value = 5;
   }
 }

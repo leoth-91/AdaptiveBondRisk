@@ -1,0 +1,7 @@
+id,face_value,coupon_rate,time_to_maturity,coupon_frequency,time_to_next_coupon,quantity
+BOND_2Y,1000,0.025,2.0,2,0.5,120
+BOND_3Y,1000,0.030,3.0,2,0.5,80
+BOND_5Y,1000,0.035,5.0,2,0.5,-90
+BOND_7Y,1000,0.038,7.0,2,0.5,-60
+BOND_10Y,1000,0.040,10.0,2,0.5,45
+BOND_20Y,1000,0.045,20.0,2,0.5,20
