@@ -46,7 +46,7 @@ Risk, Expected Shortfall — is an expectation of some function $g$ of the
 loss:
 
 $$
-\theta = \mathbb{E}_{\mathbf{s} \sim p}\big[\, g(L(\mathbf{s})) \,\big].
+\theta = \mathbb{E}_{\mathbf{s} \sim p}\big[g(L(\mathbf{s}))\big].
 $$
 
 Monte Carlo estimates $\theta$ by averaging $g(L(\mathbf{s}_i))$ over draws
