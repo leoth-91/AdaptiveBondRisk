@@ -89,6 +89,7 @@ set(SERVER_MAIN "${CMAKE_CURRENT_SOURCE_DIR}/server/main.cc")
 set(
     SERVER_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/server/src/fixed_rate_bond.cc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/server/src/gaussian_shock_sampler.cc"
     "${CMAKE_CURRENT_SOURCE_DIR}/server/src/messenger.cc"
     "${CMAKE_CURRENT_SOURCE_DIR}/server/src/portfolio.cc"
     "${CMAKE_CURRENT_SOURCE_DIR}/server/src/request_handler.cc"
@@ -97,6 +98,7 @@ set(
 set(
     SERVER_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/server/include/fixed_rate_bond.hh"
+    "${CMAKE_CURRENT_SOURCE_DIR}/server/include/gaussian_shock_sampler.hh"
     "${CMAKE_CURRENT_SOURCE_DIR}/server/include/messenger.hh"
     "${CMAKE_CURRENT_SOURCE_DIR}/server/include/portfolio.hh"
     "${CMAKE_CURRENT_SOURCE_DIR}/server/include/request_handler.hh"
@@ -252,6 +254,7 @@ if(BUILD_TESTING)
     add_executable(
         adaptive_bond_risk_cpp_tests
         tests/cpp/test_finance.cc
+        tests/cpp/test_gaussian_shock_sampler.cc
         tests/cpp/test_request_handler.cc
     )
     target_link_libraries(

@@ -1,8 +1,9 @@
 # AdaptiveBondRisk
 
 > **Work in progress:** the repository currently implements fixed-rate bond
-> portfolio valuation. Monte Carlo risk simulation and adaptive allocation are
-> planned but not yet implemented.
+> portfolio valuation and Monte Carlo loss simulation under Gaussian
+> yield-curve shocks, including empirical Value at Risk estimation. Adaptive,
+> importance-sampled allocation is planned but not yet implemented.
 
 AdaptiveBondRisk is a C++/Python project exploring adaptive Monte Carlo methods
 for financial tail-risk estimation. Its long-term goal is to estimate rare
@@ -23,9 +24,15 @@ described in:
 > *Physica Scripta* **101** 175008.
 
 AdaptiveBondRisk preserves that separation of responsibilities: C++ performs
-the numerical finance calculations, while Python supplies inputs and will later
-perform statistical modelling and optimization. The two processes communicate
-using Protocol Buffers and ZeroMQ request/reply messaging over TCP.
+the numerical finance and Monte Carlo simulation, while Python supplies
+inputs, chooses the shock distribution, and will later perform the adaptive
+statistical modelling. The two processes communicate using Protocol Buffers
+and ZeroMQ request/reply messaging over TCP.
+
+The statistical methodology — the loss distribution, Value at Risk and
+Expected Shortfall, and the importance-sampling identity that adaptive
+allocation will build on — is formalized in
+[`docs/methodology.tex`](docs/methodology.tex).
 
 ## Current functionality
 
@@ -38,8 +45,15 @@ The repository can currently:
 - Interpolate zero rates and calculate discount factors.
 - Return unit bond values, signed position values, discounted cash flows, and
   the total portfolio value to Python.
-- Test the C++ finance code, Python input code, and the complete TCP exchange
-  through one CTest command.
+- Simulate a batch of correlated yield-curve shocks in C++, drawn from a
+  multivariate Gaussian distribution (a mean vector and covariance matrix
+  over the curve's maturities) supplied by Python, reprice the portfolio
+  under every shocked curve, and return each scenario's shock and loss in a
+  single exchange.
+- Estimate empirical Value at Risk in Python from the returned losses.
+- Test the C++ finance and sampling code, Python input code, and the
+  complete TCP exchange (valuation and Monte Carlo simulation) through one
+  CTest command.
 
 The example inputs are in:
 
@@ -87,6 +101,17 @@ To display every discounted cash flow as well:
 python client/value_portfolio.py --show-cash-flows
 ```
 
+Simulate yield-curve shocks and estimate Value at Risk:
+
+```bash
+python client/simulate_var.py
+```
+
+Shocks are drawn from an illustrative Gaussian distribution (volatility
+decaying with maturity, correlation decaying with maturity distance) — not
+calibrated to market data. Run `python client/simulate_var.py --help` for
+the available parameters, including the sample count and confidence level.
+
 The existing connection test remains available:
 
 ```bash
@@ -117,16 +142,21 @@ incrementally.
 
 ## Intended direction
 
-The next major stage is to generate level, slope, and curvature shocks to the
-yield curve, fully reprice the portfolio, and estimate its loss distribution.
-This will introduce Value at Risk, Expected Shortfall, and reproducible Monte
-Carlo benchmarks.
+Yield-curve shocks are currently drawn from a multivariate Gaussian
+distribution over the curve's maturities, and Value at Risk is estimated
+empirically from the resulting losses. The next steps in this first stage
+are Expected Shortfall, a heavier-tailed multivariate Student's *t* shock
+distribution, and calibrating the shock covariance against real yield-curve
+history rather than the illustrative one used today.
 
-The central research stage will then divide market shocks into severity strata
-and adaptively allocate simulation batches across them. The resulting method
-will be compared with ordinary Monte Carlo and classical stratified allocation
-to measure whether the PhD framework provides a genuine improvement for
-multi-output financial tail-risk estimation.
+The central research stage will then introduce importance sampling: an
+alternative shock distribution, from the same family, chosen to produce
+loss-producing shocks more often and reweighted to stay unbiased for the true
+tail risk. Adaptively refining that distribution from prior simulation
+batches — the direct analogue of the importance-sampling method from the PhD
+work — will then be compared with plain Monte Carlo and classical stratified
+allocation to measure whether the approach provides a genuine improvement
+for financial tail-risk estimation.
 
 ## Development approach
 

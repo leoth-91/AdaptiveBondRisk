@@ -5,6 +5,7 @@ from models import (
     BondDefinition,
     BondValuation,
     DiscountedCashFlow,
+    LossSample,
     PingResult,
     PortfolioValuation,
     YieldCurvePoint,
@@ -120,3 +121,46 @@ class AdaptiveBondRiskClient:
             total_value=response.portfolio_value.total_value,
             positions=valuations,
         )
+
+    def simulate_losses(
+        self,
+        curve: list[YieldCurvePoint],
+        positions: list[BondDefinition],
+        mean: list[float],
+        covariance: list[float],
+        num_samples: int,
+        seed: int,
+        request_id: int = 1,
+    ) -> list[LossSample]:
+        request = messages.Request(request_id=request_id)
+
+        for point in curve:
+            curve_point = request.simulate_losses.base_yield_curve.add()
+            curve_point.maturity = point.maturity
+            curve_point.zero_rate = point.zero_rate
+
+        for definition in positions:
+            position = request.simulate_losses.positions.add()
+            position.id = definition.id
+            position.face_value = definition.face_value
+            position.coupon_rate = definition.coupon_rate
+            position.time_to_maturity = definition.time_to_maturity
+            position.coupon_frequency = definition.coupon_frequency
+            position.time_to_next_coupon = definition.time_to_next_coupon
+            position.quantity = definition.quantity
+
+        request.simulate_losses.mean.extend(mean)
+        request.simulate_losses.covariance.extend(covariance)
+        request.simulate_losses.num_samples = num_samples
+        request.simulate_losses.seed = seed
+
+        response = self._exchange(request)
+        if not response.HasField("simulate_losses"):
+            raise RuntimeError(
+                "Response does not contain a loss simulation result."
+            )
+
+        return [
+            LossSample(shock=list(sample.shock), loss=sample.loss)
+            for sample in response.simulate_losses.samples
+        ]

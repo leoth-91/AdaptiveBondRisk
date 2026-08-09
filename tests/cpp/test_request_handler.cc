@@ -1,5 +1,6 @@
 #include "request_handler.hh"
 
+#include <cstdint>
 #include <string>
 
 #include <catch2/catch_test_macros.hpp>
@@ -78,4 +79,81 @@ TEST_CASE("Malformed bytes return a structured error")
     REQUIRE_FALSE(response.success());
     REQUIRE(response.error() ==
             "The request is not a valid Protocol Buffer message");
+}
+
+namespace
+{
+
+protocol::Request build_simulate_losses_request(std::uint64_t request_id,
+                                                std::uint32_t num_samples,
+                                                std::uint64_t seed)
+{
+    protocol::Request request;
+    request.set_request_id(request_id);
+
+    protocol::SimulateLossesRequest* simulate = request.mutable_simulate_losses();
+
+    protocol::YieldCurvePoint* point = simulate->add_base_yield_curve();
+    point->set_maturity(1.0);
+    point->set_zero_rate(0.02);
+
+    protocol::BondPosition* position = simulate->add_positions();
+    position->set_id("BOND");
+    position->set_face_value(1000.0);
+    position->set_coupon_rate(0.0);
+    position->set_time_to_maturity(1.0);
+    position->set_coupon_frequency(1);
+    position->set_time_to_next_coupon(1.0);
+    position->set_quantity(1.0);
+
+    simulate->add_mean(0.0);
+    simulate->add_covariance(0.0002);
+    simulate->set_num_samples(num_samples);
+    simulate->set_seed(seed);
+
+    return request;
+}
+
+}    // namespace
+
+TEST_CASE("A loss simulation returns the requested number of correctly-sized samples")
+{
+    const protocol::Response response =
+        send_request(build_simulate_losses_request(21, 10, 7));
+
+    REQUIRE(response.success());
+    REQUIRE(response.has_simulate_losses());
+    REQUIRE(response.simulate_losses().samples_size() == 10);
+    for ( const protocol::LossSample& sample : response.simulate_losses().samples() ) {
+        REQUIRE(sample.shock_size() == 1);
+    }
+}
+
+TEST_CASE("A loss simulation is reproducible for a fixed seed")
+{
+    const protocol::Response first =
+        send_request(build_simulate_losses_request(22, 5, 3));
+    const protocol::Response second =
+        send_request(build_simulate_losses_request(22, 5, 3));
+
+    REQUIRE(first.simulate_losses().samples_size() ==
+           second.simulate_losses().samples_size());
+    for ( int i = 0; i < first.simulate_losses().samples_size(); ++i ) {
+        REQUIRE(first.simulate_losses().samples(i).loss() ==
+               second.simulate_losses().samples(i).loss());
+        REQUIRE(first.simulate_losses().samples(i).shock(0) ==
+               second.simulate_losses().samples(i).shock(0));
+    }
+}
+
+TEST_CASE("A loss simulation rejects a mean length that does not match the curve")
+{
+    protocol::Request request = build_simulate_losses_request(23, 1, 1);
+    request.mutable_simulate_losses()->add_mean(0.0);
+
+    const protocol::Response response = send_request(request);
+
+    REQUIRE_FALSE(response.success());
+    REQUIRE(response.error() ==
+            "The shock mean length must match the number of yield-curve points");
 }
