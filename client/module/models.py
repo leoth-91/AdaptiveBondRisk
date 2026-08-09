@@ -45,3 +45,9 @@ class BondValuation:
 class PortfolioValuation:
     total_value: float
     positions: list[BondValuation]
+
+
+@dataclass(frozen=True)
+class LossSample:
+    shock: list[float]
+    loss: float

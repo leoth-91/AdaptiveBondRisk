@@ -1,5 +1,7 @@
 .DS_Store
 .cache/
 build/
+docs/build/
 __pycache__/
 *.py[cod]
+.claude/

@@ -9,7 +9,7 @@ from typing import TypeVar
 import pytest
 
 from abr_client import AdaptiveBondRiskClient
-from models import PingResult, PortfolioValuation
+from models import LossSample, PingResult, PortfolioValuation
 from portfolio_loader import load_portfolio, load_yield_curve
 
 
@@ -97,3 +97,28 @@ def test_python_client_can_request_a_portfolio_valuation() -> None:
     assert len(result.positions) == len(portfolio)
     assert result.total_value != 0.0
     assert all(position.cash_flows for position in result.positions)
+
+
+def test_python_client_can_simulate_losses() -> None:
+    data_dir = Path(os.environ["ADAPTIVE_BOND_RISK_DATA_DIR"])
+    curve = load_yield_curve(data_dir / "base_yield_curve.csv")
+    portfolio = load_portfolio(data_dir / "demo_portfolio.csv")
+
+    dimension = len(curve)
+    mean = [0.0] * dimension
+    covariance = [
+        0.0001 if i == j else 0.0
+        for i in range(dimension)
+        for j in range(dimension)
+    ]
+
+    result = run_against_server(
+        lambda client: client.simulate_losses(
+            curve, portfolio, mean, covariance,
+            num_samples=5, seed=1, request_id=789,
+        )
+    )
+
+    assert len(result) == 5
+    assert all(isinstance(sample, LossSample) for sample in result)
+    assert all(len(sample.shock) == dimension for sample in result)
