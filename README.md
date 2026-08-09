@@ -29,10 +29,33 @@ inputs, chooses the shock distribution, and will later perform the adaptive
 statistical modelling. The two processes communicate using Protocol Buffers
 and ZeroMQ request/reply messaging over TCP.
 
-The statistical methodology — the loss distribution, Value at Risk and
-Expected Shortfall, and the importance-sampling identity that adaptive
-allocation will build on — is formalized in
-[`docs/methodology.tex`](docs/methodology.tex).
+## Problem statement
+
+Let $\mathbf{z}_0$ denote the current yield curve and $V(\mathbf{z})$ the
+portfolio's value under a curve $\mathbf{z}$. A **shock**
+$\mathbf{s} \in \mathbb{R}^K$ perturbs the curve,
+$\mathbf{z} = \mathbf{z}_0 + \mathbf{s}$, producing a **loss**
+
+$$
+L(\mathbf{s}) := V(\mathbf{z}_0) - V(\mathbf{z}_0 + \mathbf{s}).
+$$
+
+Shocks are drawn from a distribution $p$ over $\mathbb{R}^K$. Every risk
+quantity this project cares about — a loss-exceedance probability, Value at
+Risk, Expected Shortfall — is an expectation of some function $g$ of the
+loss:
+
+$$
+\theta = \mathbb{E}_{\mathbf{s} \sim p}\big[g(L(\mathbf{s}))\big].
+$$
+
+Monte Carlo estimates $\theta$ by averaging $g(L(\mathbf{s}_i))$ over draws
+$\mathbf{s}_1, \dots, \mathbf{s}_N \sim p$. The optimization this project is
+building toward does not change what is being estimated — it changes *how*
+those draws are chosen, aiming to reduce the estimator's variance for a
+fixed sampling budget. The full derivation — Value at Risk and Expected
+Shortfall, the importance-sampling identity, and the reweighting this relies
+on — is in [`docs/methodology.tex`](docs/methodology.tex).
 
 ## Current functionality
 
