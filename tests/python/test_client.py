@@ -5,7 +5,7 @@ import pytest
 from abr_client import AdaptiveBondRiskClient
 from models import YieldCurvePoint
 from portfolio_loader import load_portfolio, load_yield_curve
-from simulate_var import build_shock_distribution, positive_int, value_at_risk
+from simulate_var import build_shock_distribution, positive_int
 
 
 def test_empty_address_is_rejected() -> None:
@@ -53,13 +53,6 @@ def test_positive_int_rejects_non_positive_and_fractional_values() -> None:
         positive_int("-1e6")
     with pytest.raises(argparse.ArgumentTypeError):
         positive_int("1.5")
-
-
-def test_value_at_risk_selects_the_correct_order_statistic() -> None:
-    losses = [float(i) for i in range(1, 101)]
-
-    assert value_at_risk(losses, alpha=0.95) == 95.0
-    assert value_at_risk(losses, alpha=1.0) == 100.0
 
 
 def test_build_shock_distribution_has_zero_mean_and_symmetric_covariance() -> None:

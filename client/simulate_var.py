@@ -102,12 +102,6 @@ def build_shock_distribution(
     return mean, covariance
 
 
-def value_at_risk(losses: list[float], alpha: float) -> float:
-    ordered = sorted(losses)
-    index = min(math.ceil(alpha * len(ordered)) - 1, len(ordered) - 1)
-    return ordered[index]
-
-
 def main() -> int:
     args = parse_arguments()
 
@@ -120,6 +114,7 @@ def main() -> int:
 
     try:
         from abr_client import AdaptiveBondRiskClient
+        from financial_metrics import expected_shortfall, value_at_risk
         from portfolio_loader import load_portfolio, load_yield_curve
 
         portfolio = load_portfolio(args.portfolio)
@@ -139,11 +134,13 @@ def main() -> int:
         losses = [sample.loss for sample in samples]
         mean_loss = sum(losses) / len(losses)
         var_estimate = value_at_risk(losses, args.alpha)
+        es_estimate = expected_shortfall(losses, args.alpha)
 
         print(f"\nSamples:      {len(losses):,}")
         print(f"Mean loss:    {mean_loss:,.2f}")
         print(f"Max loss:     {max(losses):,.2f}")
         print(f"VaR({args.alpha:.2%}):    {var_estimate:,.2f}")
+        print(f"ES({args.alpha:.2%}):     {es_estimate:,.2f}")
         return 0
     except (OSError, RuntimeError, TimeoutError, ValueError) as error:
         print(f"Error: {error}", file=sys.stderr)
