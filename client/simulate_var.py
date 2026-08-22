@@ -77,6 +77,15 @@ def parse_arguments() -> argparse.Namespace:
         default=0,
         help="Random seed for reproducibility (default: 0)",
     )
+    parser.add_argument(
+        "--importance-mean-shift",
+        type=float,
+        default=None,
+        help="If set, draw from a mean-shifted importance distribution "
+             "(shock mean shifted by this amount, uniformly across "
+             "maturities) and report importance-weighted VaR/ES instead of "
+             "plain Monte Carlo.",
+    )
     return parser.parse_args()
 
 
@@ -92,7 +101,13 @@ def main() -> int:
 
     try:
         from abr_client import AdaptiveBondRiskClient
-        from financial_metrics import expected_shortfall, value_at_risk
+        from financial_metrics import (
+            expected_shortfall,
+            expected_shortfall_weighted,
+            value_at_risk,
+            value_at_risk_weighted,
+        )
+        from importance_sampling import log_importance_weights, normalize_weights
         from portfolio_loader import load_portfolio, load_yield_curve
         from shock_distribution import build_shock_distribution
 
@@ -103,19 +118,44 @@ def main() -> int:
         )
 
         client = AdaptiveBondRiskClient(args.address)
-
         print(f"Connecting to {args.address}")
-        print(f"Simulating {args.num_samples:,} yield-curve shocks...")
-        samples = client.simulate_losses(
-            curve, portfolio, mean, covariance, args.num_samples, args.seed
-        )
 
-        losses = [sample.loss for sample in samples]
-        mean_loss = sum(losses) / len(losses)
-        var_estimate = value_at_risk(losses, args.alpha)
-        es_estimate = expected_shortfall(losses, args.alpha)
+        if args.importance_mean_shift is None:
+            method = "plain Monte Carlo"
+            print(f"Simulating {args.num_samples:,} yield-curve shocks...")
+            samples = client.simulate_losses(
+                curve, portfolio, mean, covariance, args.num_samples, args.seed
+            )
 
-        print(f"\nSamples:      {len(losses):,}")
+            losses = [sample.loss for sample in samples]
+            mean_loss = sum(losses) / len(losses)
+            var_estimate = value_at_risk(losses, args.alpha)
+            es_estimate = expected_shortfall(losses, args.alpha)
+        else:
+            method = "importance-sampled"
+            importance_mean = [m + args.importance_mean_shift for m in mean]
+            print(
+                f"Simulating {args.num_samples:,} yield-curve shocks from a "
+                f"mean-shifted importance distribution (shift="
+                f"{args.importance_mean_shift:+.4f})..."
+            )
+            samples = client.simulate_losses(
+                curve, portfolio, importance_mean, covariance,
+                args.num_samples, args.seed,
+            )
+
+            shocks = [sample.shock for sample in samples]
+            losses = [sample.loss for sample in samples]
+            log_weights = log_importance_weights(
+                shocks, mean, covariance, importance_mean, covariance
+            )
+            weights = normalize_weights(log_weights)
+            mean_loss = sum(w * loss for w, loss in zip(weights, losses))
+            var_estimate = value_at_risk_weighted(losses, weights, args.alpha)
+            es_estimate = expected_shortfall_weighted(losses, weights, args.alpha)
+
+        print(f"\nMethod:       {method}")
+        print(f"Samples:      {len(losses):,}")
         print(f"Mean loss:    {mean_loss:,.2f}")
         print(f"Max loss:     {max(losses):,.2f}")
         print(f"VaR({args.alpha:.2%}):    {var_estimate:,.2f}")

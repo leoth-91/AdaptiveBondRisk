@@ -304,6 +304,8 @@ if(BUILD_TESTING)
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/python/test_client.py"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/python/test_financial_metrics.py"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/python/test_shock_distribution.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/python/test_gaussian_distribution.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/python/test_importance_sampling.py"
     )
     set_tests_properties(
         python_unit_tests
