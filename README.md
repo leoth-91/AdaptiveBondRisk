@@ -55,9 +55,7 @@ Monte Carlo estimates $\theta$ by averaging $g(L(\mathbf{s}_i))$ over draws
 $\mathbf{s}_1, \dots, \mathbf{s}_N \sim p$. The optimization this project is
 building toward does not change what is being estimated — it changes *how*
 those draws are chosen, aiming to reduce the estimator's variance for a
-fixed sampling budget. The full derivation — Value at Risk and Expected
-Shortfall, the importance-sampling identity, and the reweighting this relies
-on — is in [`docs/methodology.tex`](docs/methodology.tex).
+fixed sampling budget.
 
 ## Current functionality
 
