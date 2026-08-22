@@ -303,6 +303,7 @@ if(BUILD_TESTING)
             "${Python3_EXECUTABLE}" -m pytest
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/python/test_client.py"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/python/test_financial_metrics.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/python/test_shock_distribution.py"
     )
     set_tests_properties(
         python_unit_tests
